@@ -14,5 +14,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `osinfo` module with `Platform`, `Platform::current`, and `executable_extension`.
 - `paths` module with `for_app(name)` and `config`, `data`, `cache`, `logs` resolvers for macOS, Linux, and Windows.
 - `files` module with `open_path`, `open_url`, and `reveal_in_file_manager`.
-- `shell` module with `Candidates` builder, `resolve` returning a `ResolvedExecutable`, and `list_*` helpers for npm/user/system/Windows-application install directories.
+- `shell` module with `Resolver` builder, `lookup`/`lookups` accepting names or paths (auto-detected), `resolve` returning `PathBuf`, and `list_*` helpers for npm/user/system/Windows-application install directories.
 - MIT license.

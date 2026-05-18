@@ -77,7 +77,17 @@ Same behavior on macOS, Linux, and Windows. No `cfg!(target_os = ...)` switches,
 
 ## Status
 
-`v0.1.0` — feature parity with `onyx` (Go) at `v1.0.0`. API stable within a minor version pre-1.0.
+`v0.1.0`. Feature parity with `onyx` (Go) at `v1.0.2`. API stable within a minor version pre-1.0.
+
+## Design notes
+
+### `shell::Resolver`: one verb, two cases
+
+The Resolver started with two separate concepts: a name list for `PATH` lookups and a fallback path list for explicit files to try when `PATH` missed. Resolution exposed a `ResolutionSource` enum (`Path`, `Fallback`, `Unknown`) so callers could see how the binary was found.
+
+The split asked callers to classify each input upfront. The classification is mechanical: if the string has a path separator (`/`, `\\`) or a Windows drive prefix (`C:`), it is a path; otherwise it is a name. The source tag was rarely inspected.
+
+`Resolver` now collapses everything to a single ordered list of targets. `lookup` accepts both. `resolve` returns the absolute `PathBuf` of the first target that resolves, or `ShellError::BinaryNotFound`. Callers that genuinely need to know how a binary was located inspect the returned path themselves.
 
 ## Installation
 
