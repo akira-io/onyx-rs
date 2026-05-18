@@ -76,6 +76,7 @@ Same behavior on macOS, Linux, and Windows. No `cfg!(target_os = ...)` switches,
 | `shell` | Resolve CLI binaries via PATH first, then well-known per-platform install directories. |
 | `clipboard` | Read and write the system clipboard as plain text. |
 | `notify` | Show desktop notifications. |
+| `keyring` | Store, retrieve, and delete secrets in the system credential store. |
 
 ## Status
 
