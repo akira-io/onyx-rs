@@ -9,6 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - `clipboard` module. `read` and `write` operate on the system clipboard as plain text via per-platform backends (`pbcopy`/`pbpaste` on macOS, PowerShell on Windows, Wayland/X11 tools on Linux). `ClipboardError::Unavailable` is returned only on Linux when none of `wl-clipboard`, `xclip`, or `xsel` is installed. Mirrors the Go `onyx/clipboard` package.
+- `notify` module. `show(title, body)` displays a desktop notification via `osascript` on macOS, `notify-send` on Linux, and PowerShell `BurntToast` (with `msg.exe` fallback) on Windows. `NotifyError::EmptyTitle` and `NotifyError::Unavailable` cover the error cases. Mirrors the Go `onyx/notify` package.
 
 ## [0.1.0] - 2026-05-18
 

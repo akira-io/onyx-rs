@@ -4,6 +4,7 @@
 
 pub mod clipboard;
 pub mod files;
+pub mod notify;
 pub mod osinfo;
 pub mod paths;
 pub mod shell;

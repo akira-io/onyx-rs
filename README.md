@@ -75,6 +75,7 @@ Same behavior on macOS, Linux, and Windows. No `cfg!(target_os = ...)` switches,
 | `files` | Open paths/URLs with the default application, reveal a path in the file manager. |
 | `shell` | Resolve CLI binaries via PATH first, then well-known per-platform install directories. |
 | `clipboard` | Read and write the system clipboard as plain text. |
+| `notify` | Show desktop notifications. |
 
 ## Status
 
