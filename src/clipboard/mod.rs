@@ -25,7 +25,7 @@ pub fn read() -> Result<String, ClipboardError> {
         return run_reader("pbpaste", &[]);
     }
     if platform.is_windows() {
-        return run_reader("powershell", &["-NoProfile", "-Command", "Get-Clipboard"]);
+        return read_windows();
     }
     if platform.is_linux() {
         for (cmd, args) in linux_readers() {
@@ -44,11 +44,7 @@ pub fn write(text: &str) -> Result<(), ClipboardError> {
         return run_writer(text, "pbcopy", &[]);
     }
     if platform.is_windows() {
-        return run_writer(
-            text,
-            "powershell",
-            &["-NoProfile", "-Command", "Set-Clipboard"],
-        );
+        return write_windows(text);
     }
     if platform.is_linux() {
         for (cmd, args) in linux_writers() {
@@ -59,6 +55,58 @@ pub fn write(text: &str) -> Result<(), ClipboardError> {
         return Err(ClipboardError::Unavailable);
     }
     Err(ClipboardError::Unavailable)
+}
+
+fn read_windows() -> Result<String, ClipboardError> {
+    let script = "Add-Type -AssemblyName System.Windows.Forms; \
+                  [System.Windows.Forms.Clipboard]::GetText()";
+    let output = Command::new("powershell")
+        .args(["-NoProfile", "-STA", "-Command", script])
+        .output()
+        .map_err(|e| ClipboardError::Backend {
+            action: "read",
+            backend: "powershell",
+            source: e,
+        })?;
+    if !output.status.success() {
+        return Err(ClipboardError::Backend {
+            action: "read",
+            backend: "powershell",
+            source: std::io::Error::other("powershell exited non-zero"),
+        });
+    }
+    let mut s = String::from_utf8_lossy(&output.stdout).into_owned();
+    while s.ends_with('\n') || s.ends_with('\r') {
+        s.pop();
+    }
+    Ok(s)
+}
+
+fn write_windows(text: &str) -> Result<(), ClipboardError> {
+    let script = "Add-Type -AssemblyName System.Windows.Forms; \
+                  $v = $env:ONYX_CLIP_TEXT; \
+                  if ([string]::IsNullOrEmpty($v)) { \
+                      [System.Windows.Forms.Clipboard]::Clear() \
+                  } else { \
+                      [System.Windows.Forms.Clipboard]::SetText($v) \
+                  }";
+    let status = Command::new("powershell")
+        .args(["-NoProfile", "-STA", "-Command", script])
+        .env("ONYX_CLIP_TEXT", text)
+        .status()
+        .map_err(|e| ClipboardError::Backend {
+            action: "write",
+            backend: "powershell",
+            source: e,
+        })?;
+    if !status.success() {
+        return Err(ClipboardError::Backend {
+            action: "write",
+            backend: "powershell",
+            source: std::io::Error::other("powershell exited non-zero"),
+        });
+    }
+    Ok(())
 }
 
 fn linux_readers() -> &'static [(&'static str, &'static [&'static str])] {
