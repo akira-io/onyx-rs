@@ -89,6 +89,40 @@ The split asked callers to classify each input upfront. The classification is me
 
 `Resolver` now collapses everything to a single ordered list of targets. `lookup` accepts both. `resolve` returns the absolute `PathBuf` of the first target that resolves, or `ShellError::BinaryNotFound`. Callers that genuinely need to know how a binary was located inspect the returned path themselves.
 
+## Publishing
+
+This crate publishes to crates.io via [Trusted Publishing](https://crates.io/docs/trusted-publishing). The `publish.yml` workflow exchanges a GitHub OIDC token for a short-lived crates.io token at publish time. No long-lived API tokens are stored in repo secrets.
+
+### Bootstrap (one-time, for the very first release)
+
+Trusted Publishing requires the crate to exist on crates.io before it can be configured. To bootstrap:
+
+1. Generate a one-time API token at <https://crates.io/me> with `publish-new` scope.
+2. Run locally:
+   ```sh
+   cargo publish --token <one-time-token>
+   ```
+   This claims the `onyx` crate name and ships v0.1.0.
+3. On <https://crates.io/crates/onyx/settings>, open **Trusted Publishing** and click **Add**:
+   - Publisher: GitHub
+   - Repository: `akira-io/onyx-rs`
+   - Workflow: `publish.yml`
+   - Environment: `release`
+4. Revoke the one-time API token. Future releases trigger the `publish.yml` workflow on every `vX.Y.Z` tag push and no token is needed.
+5. In this repo's GitHub Settings, create an Environment named `release` (optionally with required reviewers as a pre-publish gate).
+
+### Cutting a release
+
+1. Bump `Cargo.toml` `version`.
+2. Promote the `## [Unreleased]` block in `CHANGELOG.md` to a dated `## [X.Y.Z]` block.
+3. Commit with `chore(release): vX.Y.Z`.
+4. Tag and push:
+   ```sh
+   git tag vX.Y.Z
+   git push origin main vX.Y.Z
+   ```
+5. `publish.yml` verifies the tag matches `Cargo.toml`, runs tests, authenticates with crates.io via OIDC, publishes, and creates a GitHub Release.
+
 ## Installation
 
 ```toml
