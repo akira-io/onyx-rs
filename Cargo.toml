@@ -1,5 +1,5 @@
 [package]
-name = "onyx"
+name = "onyx-rs"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.75"
@@ -7,7 +7,7 @@ description = "Cross-platform toolkit for building desktop applications without 
 license = "MIT"
 repository = "https://github.com/akira-io/onyx-rs"
 homepage = "https://github.com/akira-io/onyx-rs"
-documentation = "https://docs.rs/onyx"
+documentation = "https://docs.rs/onyx-rs"
 readme = "README.md"
 keywords = ["desktop", "cross-platform", "platform", "paths", "shell"]
 categories = ["os", "filesystem", "command-line-utilities"]

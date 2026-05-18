@@ -102,8 +102,8 @@ Trusted Publishing requires the crate to exist on crates.io before it can be con
    ```sh
    cargo publish --token <one-time-token>
    ```
-   This claims the `onyx` crate name and ships v0.1.0.
-3. On <https://crates.io/crates/onyx/settings>, open **Trusted Publishing** and click **Add**:
+   This claims the `onyx-rs` crate name and ships v0.1.0.
+3. On <https://crates.io/crates/onyx-rs/settings>, open **Trusted Publishing** and click **Add**:
    - Publisher: GitHub
    - Repository: `akira-io/onyx-rs`
    - Workflow: `publish.yml`
@@ -127,7 +127,13 @@ Trusted Publishing requires the crate to exist on crates.io before it can be con
 
 ```toml
 [dependencies]
-onyx = "0.1"
+onyx-rs = "0.1"
+```
+
+Crate publishes as `onyx-rs` on crates.io (the `onyx` name was already taken). The library is still imported as `onyx`:
+
+```rust
+use onyx::{files, paths, shell};
 ```
 
 ## Platforms
