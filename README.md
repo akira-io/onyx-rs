@@ -114,6 +114,16 @@ Pull requests welcome. Before opening one:
 
 For Go consumers, see the sister module [`akira-io/onyx`](https://github.com/akira-io/onyx).
 
+## Prior art
+
+`onyx` is a study project. These crates solve overlapping problems and have more battle-test. If you want a dependency you can lean on, reach for them first:
+
+- Paths: [`dirs`](https://crates.io/crates/dirs), [`directories`](https://crates.io/crates/directories).
+- Clipboard: [`arboard`](https://crates.io/crates/arboard).
+- Notifications: [`notify-rust`](https://crates.io/crates/notify-rust).
+- Keyring: [`keyring`](https://crates.io/crates/keyring).
+- Binary resolution: [`which`](https://crates.io/crates/which).
+
 ## License
 
 MIT. See [LICENSE](./LICENSE).
