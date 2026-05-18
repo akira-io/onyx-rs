@@ -1,5 +1,5 @@
-//! Locate command-line executables: PATH first, then well-known
-//! install directories.
+//! Locate command-line executables. Each `lookup` target is treated as
+//! a `PATH` name when it has no separators, or as a file path otherwise.
 
 use std::path::{Path, PathBuf};
 
@@ -11,92 +11,46 @@ pub enum ShellError {
     BinaryNotFound,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ResolutionSource {
-    Unknown,
-    Path,
-    Candidate,
-}
-
-impl ResolutionSource {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Path => "path",
-            Self::Candidate => "candidate",
-            Self::Unknown => "unknown",
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ResolvedExecutable {
-    absolute_path: PathBuf,
-    source: ResolutionSource,
-}
-
-impl ResolvedExecutable {
-    pub fn absolute_path(&self) -> &Path {
-        &self.absolute_path
-    }
-
-    pub fn source(&self) -> ResolutionSource {
-        self.source
-    }
-}
-
 #[derive(Debug, Default, Clone)]
-pub struct Candidates {
-    names: Vec<String>,
-    candidates: Vec<PathBuf>,
+pub struct Resolver {
+    targets: Vec<String>,
 }
 
-impl Candidates {
+impl Resolver {
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn with_name(mut self, name: impl Into<String>) -> Self {
-        let name = name.into();
-        if !name.is_empty() {
-            self.names.push(name);
+    pub fn lookup(mut self, target: impl Into<String>) -> Self {
+        let t = target.into();
+        if !t.is_empty() {
+            self.targets.push(t);
         }
         self
     }
 
-    pub fn with_candidate(mut self, path: impl Into<PathBuf>) -> Self {
-        let p = path.into();
-        if !p.as_os_str().is_empty() {
-            self.candidates.push(p);
-        }
-        self
-    }
-
-    pub fn with_candidates<I, P>(mut self, paths: I) -> Self
+    pub fn lookups<I, S>(mut self, targets: I) -> Self
     where
-        I: IntoIterator<Item = P>,
-        P: Into<PathBuf>,
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
     {
-        for p in paths {
-            self = self.with_candidate(p);
+        for t in targets {
+            self = self.lookup(t);
         }
         self
     }
 
-    pub fn resolve(&self) -> Result<ResolvedExecutable, ShellError> {
-        for name in &self.names {
-            if let Some(found) = look_path(name) {
-                return Ok(ResolvedExecutable {
-                    absolute_path: found,
-                    source: ResolutionSource::Path,
-                });
+    pub fn resolve(&self) -> Result<PathBuf, ShellError> {
+        for t in &self.targets {
+            if is_path_like(t) {
+                let p = PathBuf::from(t);
+                if is_executable_file(&p) {
+                    return Ok(p);
+                }
+                continue;
             }
-        }
-        for candidate in &self.candidates {
-            if is_executable_file(candidate) {
-                return Ok(ResolvedExecutable {
-                    absolute_path: candidate.clone(),
-                    source: ResolutionSource::Candidate,
-                });
+            if let Some(found) = look_path(t) {
+                return Ok(found);
             }
         }
         Err(ShellError::BinaryNotFound)
@@ -171,6 +125,14 @@ pub fn list_windows_application_dirs(application_name: &str) -> Vec<PathBuf> {
     out
 }
 
+fn is_path_like(s: &str) -> bool {
+    if s.contains('/') || s.contains('\\') {
+        return true;
+    }
+    let bytes = s.as_bytes();
+    bytes.len() >= 2 && bytes[1] == b':'
+}
+
 fn look_path(name: &str) -> Option<PathBuf> {
     let path_env = std::env::var_os("PATH")?;
     for dir in std::env::split_paths(&path_env) {
@@ -195,30 +157,38 @@ mod tests {
 
     #[test]
     fn resolve_fails_when_nothing_matches() {
-        let result = Candidates::new()
-            .with_name("definitely-not-a-real-binary-xyz")
-            .with_candidate("/definitely/not/a/path/binary")
+        let result = Resolver::new()
+            .lookup("definitely-not-a-real-binary-xyz")
+            .lookup("/definitely/not/a/path/binary")
             .resolve();
         assert!(matches!(result, Err(ShellError::BinaryNotFound)));
     }
 
     #[test]
-    fn resolve_finds_explicit_candidate_file() {
+    fn resolve_finds_explicit_path() {
         let dir = tempfile::tempdir().expect("tempdir");
         let bin = dir.path().join("fakebin");
         std::fs::write(&bin, "#!/bin/sh\nexit 0\n").expect("write");
-        let result = Candidates::new()
-            .with_name("definitely-not-a-real-binary-xyz")
-            .with_candidate(&bin)
+        let resolved = Resolver::new()
+            .lookup("definitely-not-a-real-binary-xyz")
+            .lookup(bin.to_string_lossy().to_string())
             .resolve()
             .expect("resolve");
-        assert_eq!(result.absolute_path(), bin.as_path());
-        assert_eq!(result.source(), ResolutionSource::Candidate);
+        assert_eq!(resolved, bin);
     }
 
     #[test]
     fn ignores_empty_inputs() {
-        let result = Candidates::new().with_name("").with_candidate("").resolve();
+        let result = Resolver::new().lookup("").lookup("").resolve();
         assert!(matches!(result, Err(ShellError::BinaryNotFound)));
+    }
+
+    #[test]
+    fn is_path_like_detects_separators() {
+        assert!(!is_path_like("claude"));
+        assert!(is_path_like("/opt/homebrew/bin/claude"));
+        assert!(is_path_like("./bin/foo"));
+        assert!(is_path_like(r"C:\Program Files\app.exe"));
+        assert!(!is_path_like(""));
     }
 }

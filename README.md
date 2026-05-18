@@ -58,9 +58,9 @@ let app = paths::for_app("Hyperion");
 let config = app.config()?;
 files::reveal_in_file_manager(&config)?;
 
-let claude = shell::Candidates::new()
-    .with_name("claude")
-    .with_candidate("/opt/homebrew/bin/claude")
+let claude = shell::Resolver::new()
+    .lookup("claude")
+    .lookup("/opt/homebrew/bin/claude")
     .resolve()?;
 ```
 
