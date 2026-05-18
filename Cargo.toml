@@ -1,0 +1,27 @@
+[package]
+name = "onyx"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+description = "Cross-platform toolkit for building desktop applications without rewriting OS-specific glue every time"
+license = "MIT"
+repository = "https://github.com/akira-io/onyx-rs"
+homepage = "https://github.com/akira-io/onyx-rs"
+documentation = "https://docs.rs/onyx"
+readme = "README.md"
+keywords = ["desktop", "cross-platform", "platform", "paths", "shell"]
+categories = ["os", "filesystem", "command-line-utilities"]
+authors = ["Akira Foundation"]
+
+[lib]
+name = "onyx"
+path = "src/lib.rs"
+
+[features]
+default = []
+
+[dependencies]
+thiserror = "1"
+
+[dev-dependencies]
+tempfile = "3"
