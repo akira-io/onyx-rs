@@ -54,27 +54,20 @@ jobs:
       - name: Push changelog
         run: git push origin HEAD:main || true
 
-      - name: Check if version already published
-        id: version_check
-        run: |
-          VER="${{ steps.version.outputs.version }}"
-          if curl -fsSL "https://crates.io/api/v1/crates/onyx-rs/$VER" >/dev/null 2>&1; then
-            echo "Already published: onyx-rs@$VER"
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Authenticate with crates.io
-        if: steps.version_check.outputs.skip != 'true'
         id: auth
         uses: rust-lang/crates-io-auth-action@v1
 
       - name: Publish to crates.io
-        if: steps.version_check.outputs.skip != 'true'
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
-        run: cargo publish
+        run: |
+          cargo publish 2>&1 | tee /tmp/cargo-publish.log; EXIT=${PIPESTATUS[0]}
+          if [ $EXIT -eq 101 ] && grep -q "already exists" /tmp/cargo-publish.log; then
+            echo "Version already published, continuing."
+            exit 0
+          fi
+          exit $EXIT
 
       - name: Extract release notes
         id: notes
