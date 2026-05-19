@@ -1,6 +1,6 @@
 # Conventions
 
-Every module in `onyx` follows the rules below. They are non-negotiable. If a contribution breaks one of these rules without justification, it is rejected.
+Every module follows the rules below. They are non-negotiable. A contribution that breaks one without justification is rejected.
 
 ## Naming
 
@@ -8,7 +8,7 @@ Every module in `onyx` follows the rules below. They are non-negotiable. If a co
 
 - Lowercase, single word, no underscores or camelCase.
 - Singular when the module is about a single concept (`shell`).
-- Plural when the module primarily yields collections or grouped resources (`paths`, `files`).
+- Plural when the module yields collections or grouped resources (`paths`, `files`).
 - Never prefix with `onyx` — the crate root already provides that context.
 
 ### Items
@@ -27,7 +27,7 @@ Every module in `onyx` follows the rules below. They are non-negotiable. If a co
 ### Errors
 
 - One typed error enum per module, derived via `thiserror::Error`.
-- Variants are `PascalCase`, package-prefixed in the `#[error("...")]` string (e.g. `"shell: binary not found"`).
+- Variants are `PascalCase`, prefixed in the `#[error("...")]` string (e.g. `"shell: binary not found"`).
 - Distinguish input validation, not-found, unavailable backend, and wrapped backend errors as separate variants.
 - Never `panic!` for recoverable failures. Never `unwrap()` / `expect()` in library code.
 
@@ -35,9 +35,9 @@ Every module in `onyx` follows the rules below. They are non-negotiable. If a co
 
 - **Single responsibility.** A function does one thing the name describes.
 - **`Result<T, ModuleError>` over `Option` for fallible operations.** Reserve `Option` for genuinely optional values.
-- **No boolean flag parameters.** Branching on flags means two functions wearing one name. Split them.
+- **No boolean flag parameters.** Branching on flags means two functions wearing one name — split them.
 - **No `Box<dyn Trait>` in public signatures unless dispatch is genuinely dynamic.** Prefer generics or concrete enums.
-- **Builders for 3+ parameters.** A function that needs many options exposes a builder so call sites are readable.
+- **Builders for 3+ parameters.** A function that needs many options exposes a builder so call sites stay readable.
 - **`PathBuf` / `&Path` for paths.** Never raw `String`. `OsStr`/`OsString` at the OS boundary.
 
 ## Comments
@@ -49,8 +49,8 @@ Every module in `onyx` follows the rules below. They are non-negotiable. If a co
 
 ## Documentation
 
-- Every module has a markdown file in `docs/modules/<module>.md`.
-- The file covers: purpose, public API, examples, error catalog, dependencies, related modules.
+- Every module has a markdown file in `docs/2N-<module>.md`.
+- The file covers: purpose, public API table, errors, examples, dependencies, related modules, navigation footer.
 - `README.md` is the adoption hook — long-form text belongs in `docs/`.
 
 ## SOLID, DRY, KISS
@@ -69,7 +69,7 @@ Every module in `onyx` follows the rules below. They are non-negotiable. If a co
 - Tests are `snake_case`, scenario-first: `resolve_fails_when_nothing_matches`.
 - Unit tests live in `#[cfg(test)] mod tests { ... }` at the bottom of the module. Integration tests in `tests/`.
 - No mocking std. Use `tempfile::tempdir()` and the real filesystem.
-- OS-facing tests skip cleanly when no backend is reachable (return early on `Unavailable`, etc.). The suite stays green on minimal CI.
+- OS-facing tests skip cleanly when no backend is reachable (return early on `Unavailable`). The suite stays green on minimal CI.
 
 ## Lint gate
 
@@ -90,8 +90,15 @@ src/
 ├── lib.rs              re-exports every public module
 └── <module>/
     └── mod.rs          public API + #[cfg(test)] mod tests
+
 docs/
-└── modules/<module>.md
+├── 00-index.md         TOC
+├── 01-installation.md  …
+└── 2N-<module>.md      per-module reference
 ```
 
 For small modules a flat `src/<module>.rs` is acceptable; promote to `<module>/mod.rs` when the file exceeds ~200 lines or grows internal submodules. No `util.rs`, `helpers.rs`, or `common.rs`.
+
+---
+
+Navigation: [← Architecture](03-architecture.md) · **Conventions** · [Release flow →](05-release-flow.md)

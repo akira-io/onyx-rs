@@ -2,6 +2,8 @@
 
 Cross-platform Rust toolkit for building desktop applications without rewriting OS-specific glue every time. Sister crate to [`akira-io/onyx`](https://github.com/akira-io/onyx) (Go), with a mirrored module surface so a team can split a desktop app between a Rust core and Go services and reach for the same primitives on both sides.
 
+> Full reference: [`docs/00-index.md`](docs/00-index.md) - one file per module, mirrored with the Go crate's documentation tree.
+
 ## Why
 
 ```rust
