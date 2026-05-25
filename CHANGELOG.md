@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-05-25
+
 ### Added
 
 - `osinfo::hostname()` returns the operating system host name as `Option<String>`, or `None` when it cannot be determined. Backed by the `gethostname` crate since the standard library exposes no portable host-name API.
