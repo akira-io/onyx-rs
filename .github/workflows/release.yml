@@ -51,3 +51,18 @@ jobs:
             --title "${{ github.ref_name }}" \
             --notes "${{ steps.notes.outputs.body }}" \
             --latest
+
+      - name: Send GitHub Release to Discord
+        uses: SethCohen/github-releases-to-discord@v1.20.0
+        with:
+          webhook_url: ${{ secrets.DISCORD }}
+          release_name: ${{ github.ref_name }}
+          release_body: ${{ steps.notes.outputs.body }}
+          release_html_url: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
+          color: "2105893"
+          username: "Onyx (Rust)"
+          avatar_url: "https://avatars.githubusercontent.com/u/116525492?s=96&v=4"
+          content: "||@everyone||"
+          footer_title: "Onyx (Rust)"
+          footer_icon_url: "https://avatars.githubusercontent.com/u/116525492?s=96&v=4"
+          footer_timestamp: true
