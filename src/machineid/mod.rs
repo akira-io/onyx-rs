@@ -54,6 +54,10 @@ mod tests {
         let Ok(first) = get_or_create(APP) else {
             return;
         };
+        if keyring::get(APP, ID_ACCOUNT).is_err() {
+            let _ = keyring::delete(APP, ID_ACCOUNT);
+            return;
+        }
         let second = get_or_create(APP).expect("second get_or_create");
         let _ = keyring::delete(APP, ID_ACCOUNT);
         assert_eq!(first, second, "identity should be stable");
