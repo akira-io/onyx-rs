@@ -151,9 +151,85 @@ fn is_executable_file(path: &Path) -> bool {
     }
 }
 
+/// login_path returns the PATH as seen by the user's interactive login shell.
+/// GUI applications launched outside a terminal on macOS and Linux do not
+/// inherit the shell's PATH additions; this recovers them. On Windows, and when
+/// the shell cannot be queried, it falls back to the current process PATH.
+pub fn login_path() -> String {
+    let process_path = std::env::var("PATH").unwrap_or_default();
+    if Platform::current().is_windows() {
+        return process_path;
+    }
+    let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_string());
+    let output = std::process::Command::new(shell)
+        .args(["-l", "-c", "echo $PATH"])
+        .output();
+    match output {
+        Ok(out) => {
+            let trimmed = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            if trimmed.is_empty() {
+                process_path
+            } else {
+                trimmed
+            }
+        }
+        Err(_) => process_path,
+    }
+}
+
+/// enriched_environ returns the current environment with PATH merged from the
+/// process and login-shell PATH, order preserved and duplicates dropped. Use it
+/// when spawning child processes that must find user-installed tools.
+pub fn enriched_environ() -> Vec<(String, String)> {
+    let merged = merge_path(&std::env::var("PATH").unwrap_or_default(), &login_path());
+    std::env::vars()
+        .map(|(key, value)| {
+            if key == "PATH" {
+                (key, merged.clone())
+            } else {
+                (key, value)
+            }
+        })
+        .collect()
+}
+
+fn merge_path(first: &str, second: &str) -> String {
+    let separator = if Platform::current().is_windows() {
+        ';'
+    } else {
+        ':'
+    };
+    let mut seen = std::collections::HashSet::new();
+    let mut ordered = Vec::new();
+    for group in [first, second] {
+        for segment in group.split(separator).filter(|s| !s.is_empty()) {
+            if seen.insert(segment.to_string()) {
+                ordered.push(segment.to_string());
+            }
+        }
+    }
+    ordered.join(&separator.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn login_path_is_non_empty() {
+        assert!(!login_path().is_empty());
+    }
+
+    #[test]
+    fn merge_path_drops_duplicates() {
+        let sep = if Platform::current().is_windows() {
+            ';'
+        } else {
+            ':'
+        };
+        let merged = merge_path(&format!("a{sep}b"), &format!("b{sep}c"));
+        assert_eq!(merged, format!("a{sep}b{sep}c"));
+    }
 
     #[test]
     fn resolve_fails_when_nothing_matches() {
