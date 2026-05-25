@@ -17,6 +17,7 @@ use onyx::osinfo::{Platform, executable_extension};
 | `Platform::is_windows()` | method | Windows predicate. |
 | `Platform::as_str()` | method | `&'static str` — `"macos" \| "linux" \| "windows" \| <other std::env::consts::OS>`. |
 | `executable_extension()` | fn | `".exe"` on Windows, `""` otherwise. |
+| `hostname()` | fn | `Option<String>` — OS host name, `None` when it cannot be determined. |
 
 `Platform` derives `Debug, Clone, Copy, PartialEq, Eq`. The internal `identifier: &'static str` is borrowed straight from `std::env::consts::OS`.
 
@@ -65,6 +66,16 @@ let target = format!("hyperion{}", onyx::osinfo::executable_extension());
 
 Use this when constructing paths to bundled binaries — e.g. embedding a sidecar via `include_bytes!` and writing it to disk.
 
+## hostname
+
+Returns the machine host name for labelling a device or session:
+
+```rust
+let name = onyx::osinfo::hostname().unwrap_or_else(|| "Unknown device".to_string());
+```
+
+Returns `None` when the host name is unavailable or not valid UTF-8, so callers supply their own fallback.
+
 ## Behaviour
 
 - `Platform::current()` always succeeds — `std::env::consts::OS` is a compile-time constant; there is no runtime call.
@@ -81,7 +92,7 @@ Use this when constructing paths to bundled binaries — e.g. embedding a sideca
 
 ## Dependencies
 
-None (uses `std::env::consts::OS` only).
+`gethostname` for `hostname()` — the standard library exposes no portable host-name API. Platform identity (`Platform`, `executable_extension`) uses `std::env::consts::OS` only.
 
 ## Related modules
 
@@ -89,7 +100,7 @@ Every other module depends on `osinfo`. When adding a new module, ask `Platform:
 
 ## Cross-crate parity
 
-Mirrors the Go crate's `osinfo` package: same predicate names (`is_darwin` ↔ `IsDarwin`), same `executable_extension` helper, same one-source-of-truth principle.
+Mirrors the Go crate's `osinfo` package: same predicate names (`is_darwin` ↔ `IsDarwin`), same `executable_extension` helper, `hostname` ↔ `Hostname`, same one-source-of-truth principle.
 
 ---
 

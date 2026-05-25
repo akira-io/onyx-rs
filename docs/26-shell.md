@@ -20,6 +20,8 @@ use onyx::shell::{Resolver, ShellError};
 | `list_user_local_bin_dirs() -> Vec<PathBuf>` | fn | `~/.local/bin`, `~/bin`. |
 | `list_system_bin_dirs() -> Vec<PathBuf>` | fn | Platform-specific system bin directories. |
 | `list_windows_application_dirs(app: &str) -> Vec<PathBuf>` | fn | `LOCALAPPDATA\Programs\<app>`, `ProgramFiles\<app>`, `ProgramFiles(x86)\<app>`. |
+| `login_path() -> String` | fn | PATH as seen by the user's login shell; recovers tool dirs GUI launchers omit. |
+| `enriched_environ() -> Vec<(String, String)>` | fn | Current env with PATH merged from the process and login-shell PATH. |
 
 ## Lookup semantics
 
@@ -115,4 +117,4 @@ Mirrors the Go crate's `shell` package one-to-one: same `Resolver` builder shape
 
 ---
 
-Navigation: [← Paths](25-paths.md) · **Shell** · [Index ↑](00-index.md)
+Navigation: [← Paths](25-paths.md) · **Shell** · [Machine ID →](27-machineid.md)

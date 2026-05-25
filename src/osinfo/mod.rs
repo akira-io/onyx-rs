@@ -41,6 +41,15 @@ pub fn executable_extension() -> &'static str {
     }
 }
 
+/// hostname returns the operating system host name, when it can be determined.
+///
+/// Returns `None` if the host name is unavailable or not valid UTF-8, leaving
+/// the fallback choice to the caller. Backed by the `gethostname` crate because
+/// the standard library exposes no portable host-name API.
+pub fn hostname() -> Option<String> {
+    gethostname::gethostname().into_string().ok()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -71,6 +80,13 @@ mod tests {
             assert_eq!(got, ".exe");
         } else {
             assert_eq!(got, "");
+        }
+    }
+
+    #[test]
+    fn hostname_is_non_empty_when_present() {
+        if let Some(name) = hostname() {
+            assert!(!name.is_empty(), "hostname should not be an empty string");
         }
     }
 }
