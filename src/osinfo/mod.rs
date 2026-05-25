@@ -50,6 +50,56 @@ pub fn hostname() -> Option<String> {
     gethostname::gethostname().into_string().ok()
 }
 
+/// device_name returns a human-friendly name for the current machine, the name a
+/// user recognizes in system settings, when it can be determined.
+///
+/// Falls back to [`hostname`] when no friendlier source is available, so it
+/// returns `None` only when neither a friendly name nor the host name is
+/// readable.
+pub fn device_name() -> Option<String> {
+    let platform = Platform::current();
+    if platform.is_darwin() {
+        if let Some(name) = command_output("scutil", &["--get", "ComputerName"]) {
+            return Some(name);
+        }
+    }
+    if platform.is_windows() {
+        if let Some(name) = env_name("COMPUTERNAME") {
+            return Some(name);
+        }
+    }
+    if platform.is_linux() {
+        if let Some(name) = command_output("hostnamectl", &["--pretty"]) {
+            return Some(name);
+        }
+    }
+    hostname()
+}
+
+fn command_output(program: &str, args: &[&str]) -> Option<String> {
+    let output = std::process::Command::new(program)
+        .args(args)
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    non_empty(String::from_utf8(output.stdout).ok()?)
+}
+
+fn env_name(key: &str) -> Option<String> {
+    non_empty(std::env::var(key).ok()?)
+}
+
+fn non_empty(value: String) -> Option<String> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some(trimmed.to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -87,6 +137,17 @@ mod tests {
     fn hostname_is_non_empty_when_present() {
         if let Some(name) = hostname() {
             assert!(!name.is_empty(), "hostname should not be an empty string");
+        }
+    }
+
+    #[test]
+    fn device_name_falls_back_to_hostname() {
+        match device_name() {
+            Some(name) => assert!(!name.is_empty(), "device name should not be empty"),
+            None => assert!(
+                hostname().is_none(),
+                "device name should fall back to hostname"
+            ),
         }
     }
 }

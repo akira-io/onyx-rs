@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-05-25
+
+### Added
+
+- `osinfo::device_name()` returns a human-friendly machine name (macOS `ComputerName`, Windows `COMPUTERNAME`, Linux pretty hostname), falling back to `hostname()` when no friendlier source is available.
+
 ## [1.1.0] - 2026-05-25
 
 ### Added

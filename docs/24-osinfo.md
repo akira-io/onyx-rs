@@ -18,6 +18,7 @@ use onyx::osinfo::{Platform, executable_extension};
 | `Platform::as_str()` | method | `&'static str` — `"macos" \| "linux" \| "windows" \| <other std::env::consts::OS>`. |
 | `executable_extension()` | fn | `".exe"` on Windows, `""` otherwise. |
 | `hostname()` | fn | `Option<String>` — OS host name, `None` when it cannot be determined. |
+| `device_name()` | fn | `Option<String>` — human-friendly machine name (macOS `ComputerName`, Windows `COMPUTERNAME`, Linux pretty hostname), falling back to `hostname()`. |
 
 `Platform` derives `Debug, Clone, Copy, PartialEq, Eq`. The internal `identifier: &'static str` is borrowed straight from `std::env::consts::OS`.
 
