@@ -24,7 +24,10 @@ The crate packages thin, opinionated wrappers around the stable Rust standard li
 | [23-notify](23-notify.md) | Desktop notifications |
 | [24-osinfo](24-osinfo.md) | Platform identity — single source of truth for OS branching |
 | [25-paths](25-paths.md) | Per-application config / data / cache / log directories |
-| [26-shell](26-shell.md) | Locate command-line executables |
+| [26-shell](26-shell.md) | Locate command-line executables; recover the login-shell PATH |
+| [27-machineid](27-machineid.md) | Stable per-application machine identifier |
+| [28-appearance](28-appearance.md) | Detect the OS light/dark color scheme |
+| [29-process](29-process.md) | Relaunch the application across platforms |
 
 ## What this crate is
 
